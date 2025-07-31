@@ -54,8 +54,8 @@ module.exports = async (req, res) => {
     return;
   }
 
-  // Only allow POST requests
-  if (req.method !== 'POST') {
+  // Allow both GET and POST requests for testing
+  if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
@@ -64,7 +64,17 @@ module.exports = async (req, res) => {
   try {
     debugSteps.push({ step: 1, status: 'PASS', message: 'Request received' });
 
-    const { message, sessionId } = req.body;
+    // For GET requests, use test data
+    let message, sessionId;
+    if (req.method === 'GET') {
+      message = 'Hello, this is a test message';
+      sessionId = 'test_session_' + Date.now();
+      debugSteps.push({ step: 1.5, status: 'PASS', message: 'Using test data for GET request' });
+    } else {
+      const body = req.body;
+      message = body.message;
+      sessionId = body.sessionId;
+    }
 
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
