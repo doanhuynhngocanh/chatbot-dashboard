@@ -16,7 +16,7 @@
     "openai": "^4.20.1"
   },
   "devDependencies": {
-    "vercel": "^32.5.0"
+    "vercel": "^44.6.4"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -30,4 +30,4 @@
   ],
   "author": "Your Name",
   "license": "MIT"
-} 
+}
