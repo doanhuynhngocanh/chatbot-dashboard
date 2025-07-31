@@ -34,7 +34,7 @@ async function fetchConversations(page = 1) {
     try {
         console.log(`🔍 Fetching conversations from database (page ${page})...`);
         
-        const response = await fetch(`/api/conversations/db?page=${page}&limit=10`);
+        const response = await fetch(`/api/conversations?page=${page}&limit=10`);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -321,7 +321,7 @@ async function showMessages(sessionId) {
     try {
         console.log('📖 Loading messages for session:', sessionId);
         
-        const response = await fetch(`/api/conversation/${sessionId}`);
+        const response = await fetch(`/api/conversation?sessionId=${sessionId}`);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -410,7 +410,7 @@ async function analyzeConversation(sessionId) {
         // Show loading state
         showSuccess('Analyzing conversation with AI... This may take a few moments.');
         
-        const response = await fetch(`/api/conversation/${sessionId}/analyze`, {
+        const response = await fetch(`/api/conversation?sessionId=${sessionId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -512,7 +512,7 @@ async function deleteConversation(sessionId) {
     try {
         console.log('🗑️ Deleting conversation:', sessionId);
         
-        const response = await fetch(`/api/conversation/${sessionId}`, {
+        const response = await fetch(`/api/conversation?sessionId=${sessionId}`, {
             method: 'DELETE'
         });
         

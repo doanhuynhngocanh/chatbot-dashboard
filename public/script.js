@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadPreviousConversation() {
     try {
         const currentUrl = window.location.origin;
-        const conversationUrl = `${currentUrl}/api/conversation/${sessionId}`;
+        const conversationUrl = `${currentUrl}/api/conversation?sessionId=${sessionId}`;
         
         console.log('📖 Loading previous conversation from:', conversationUrl);
         

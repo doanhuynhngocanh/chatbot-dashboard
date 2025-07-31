@@ -137,11 +137,13 @@ module.exports = async (req, res) => {
       timestamp: new Date().toISOString()
     });
 
-    // Prepare messages for OpenAI
-    const messages = conversationHistory.map(msg => ({
-      role: msg.role,
-      content: msg.content
-    }));
+    // Prepare messages for OpenAI (exclude system messages from history)
+    const messages = conversationHistory
+      .filter(msg => msg.role !== 'system') // Remove any system messages from history
+      .map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
 
     console.log('🤖 Calling OpenAI API...');
     console.log('Messages to send:', messages.length);
