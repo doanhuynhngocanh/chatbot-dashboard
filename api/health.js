@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 module.exports = async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');

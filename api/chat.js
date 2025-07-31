@@ -1,3 +1,4 @@
+require('dotenv').config();
 const OpenAI = require('openai');
 const { createClient } = require('@supabase/supabase-js');
 
@@ -90,6 +91,17 @@ module.exports = async (req, res) => {
 
     console.log('🤖 Calling OpenAI API...');
     console.log('Messages to send:', messages.length);
+    
+    // Check if OpenAI API key is available
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('❌ OPENAI_API_KEY is not set');
+      return res.status(500).json({ 
+        error: 'OpenAI API key not configured on server',
+        details: 'Please check your environment variables'
+      });
+    }
+    
+    console.log('✅ OpenAI API key is available');
 
     // Call OpenAI API
     const completion = await openai.chat.completions.create({
