@@ -23,19 +23,5 @@
       "src": "/(.*)",
       "dest": "/public/$1"
     }
-  ],
-  "functions": {
-    "api/chat.js": {
-      "maxDuration": 30
-    },
-    "api/conversations.js": {
-      "maxDuration": 30
-    },
-    "api/conversation.js": {
-      "maxDuration": 30
-    },
-    "api/health.js": {
-      "maxDuration": 10
-    }
-  }
+  ]
 } 
