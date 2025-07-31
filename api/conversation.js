@@ -107,16 +107,21 @@ module.exports = async (req, res) => {
       const { data, error } = await supabase
         .from('conversations')
         .select('*')
-        .eq('conversation_id', sessionId)
-        .single();
+        .eq('conversation_id', sessionId);
 
       if (error) {
         console.error('❌ Error fetching conversation:', error);
-        return res.status(404).json({ error: 'Conversation not found' });
+        return res.status(500).json({ error: 'Database error' });
+      }
+
+      // If no conversation found, return empty array (this is normal for new sessions)
+      if (!data || data.length === 0) {
+        console.log('📝 No conversation found for session:', sessionId);
+        return res.json({ conversation: [] });
       }
 
       console.log('✅ Conversation loaded successfully');
-      res.json({ conversation: data.messages || [] });
+      res.json({ conversation: data[0].messages || [] });
     }
 
     // DELETE - Delete conversation

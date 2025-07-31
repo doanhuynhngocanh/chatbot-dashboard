@@ -185,14 +185,14 @@ async function testConnection() {
         
         console.log('✅ Connection test successful:', data);
         
+        // Don't show warning messages - just log for debugging
         if (!data.openaiKeySet) {
             console.warn('⚠️ OpenAI API key not set on server');
-            addMessage('⚠️ Warning: OpenAI API key not configured on server', false);
         }
         
     } catch (error) {
         console.error('❌ Connection test failed:', error);
-        addMessage('⚠️ Warning: Cannot connect to server', false);
+        // Don't show error message to user - just log for debugging
     }
 }
 
@@ -228,13 +228,14 @@ async function loadPreviousConversation() {
                 
                 addMessage('🔄 Conversation loaded from previous session', false);
             } else {
-                console.log('📝 No previous conversation found');
+                console.log('📝 No previous conversation found - keeping initial greeting');
             }
         } else {
-            console.log('📝 No previous conversation available');
+            console.log('📝 No previous conversation available - keeping initial greeting');
         }
         
     } catch (error) {
         console.error('❌ Error loading previous conversation:', error);
+        // Keep the initial greeting if there's an error
     }
 } 
