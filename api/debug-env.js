@@ -20,11 +20,18 @@ module.exports = async (req, res) => {
 
   // Check if OpenAI API key is actually valid (don't expose the key)
   let openaiStatus = 'NOT TESTED';
+  let openaiError = null;
+  let apiKeyPrefix = null;
+  
   if (process.env.OPENAI_API_KEY) {
+    // Show first few characters of API key for debugging (safely)
+    apiKeyPrefix = process.env.OPENAI_API_KEY.substring(0, 7) + '...';
+    
     try {
       const OpenAI = require('openai');
       const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
+        timeout: 10000, // 10 second timeout
       });
       
       // Test with a simple request
@@ -36,7 +43,14 @@ module.exports = async (req, res) => {
       
       openaiStatus = 'WORKING';
     } catch (error) {
-      openaiStatus = `ERROR: ${error.message}`;
+      openaiStatus = 'ERROR';
+      openaiError = {
+        message: error.message,
+        code: error.code,
+        status: error.status,
+        type: error.type,
+        stack: error.stack ? error.stack.split('\n')[0] : null
+      };
     }
   }
 
@@ -45,6 +59,8 @@ module.exports = async (req, res) => {
     timestamp: new Date().toISOString(),
     environment: envVars,
     openaiStatus: openaiStatus,
+    openaiError: openaiError,
+    apiKeyPrefix: apiKeyPrefix,
     allEnvKeys: Object.keys(process.env).filter(key => 
       key.includes('OPENAI') || key.includes('SUPABASE') || key.includes('VERCEL')
     )
