@@ -394,12 +394,22 @@ function renderMessages(messages, sessionId) {
 
 
 // Return to dashboard (conversation list)
-function returnToDashboard() {
+async function returnToDashboard() {
     messagesView.style.display = 'none';
     analysisView.style.display = 'none';
     conversationList.style.display = 'block';
     messagesContainer.innerHTML = '';
     analysisContainer.innerHTML = '';
+    
+    // Auto-refresh the dashboard to show latest data
+    console.log('🔄 Auto-refreshing dashboard...');
+    try {
+        await fetchConversations(currentPage);
+        showSuccess('Dashboard refreshed successfully');
+    } catch (error) {
+        console.error('❌ Error refreshing dashboard:', error);
+        showError('Failed to refresh dashboard');
+    }
 }
 
 // Analyze conversation using OpenAI API
