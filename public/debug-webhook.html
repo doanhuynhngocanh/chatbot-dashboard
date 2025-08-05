@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webhook Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .debug-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .debug-section h3 {
+            margin-top: 0;
+            color: #555;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.success { background: #28a745; color: white; }
+        .status.error { background: #dc3545; color: white; }
+        .status.warning { background: #ffc107; color: black; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Webhook Debug Tool</h1>
+        
+        <div class="debug-section">
+            <h3>1. Environment Check</h3>
+            <button onclick="checkEnvironment()" id="envBtn">🔍 Check Environment</button>
+            <div id="envResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="debug-section">
+            <h3>2. Test Webhook Connection</h3>
+            <button onclick="testWebhookConnection()" id="testBtn">🌐 Test Webhook</button>
+            <div id="testResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="debug-section">
+            <h3>3. Send Test Message</h3>
+            <button onclick="sendTestMessage()" id="messageBtn">💬 Send Test Message</button>
+            <div id="messageResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="debug-section">
+            <h3>4. Troubleshooting Steps</h3>
+            <div id="troubleshooting">
+                <p><strong>If webhook is not working:</strong></p>
+                <ol>
+                    <li>Check if <code>WEBHOOK_URL</code> environment variable is set in Vercel</li>
+                    <li>Verify your webhook URL is accessible and accepts POST requests</li>
+                    <li>Check Vercel function logs for error messages</li>
+                    <li>Test your webhook URL manually with a tool like Postman</li>
+                    <li>Make sure your webhook endpoint returns a 200 status code</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function checkEnvironment() {
+            const btn = document.getElementById('envBtn');
+            const result = document.getElementById('envResult');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Checking...';
+            showResult('🔄 Checking environment variables...', 'info', result);
+
+            try {
+                const currentUrl = window.location.origin;
+                const apiUrl = `${currentUrl}/api/debug-webhook`;
+                
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const envStatus = data.debug.allEnvVars;
+                    const status = data.debug.webhookUrl === '✅ Set' ? 'success' : 'error';
+                    
+                    const resultText = `Environment Check Results:
+
+✅ Webhook URL: ${data.debug.webhookUrl}
+🔗 URL Value: ${data.debug.webhookUrlValue}
+🌍 Environment: ${data.debug.environment}
+
+Environment Variables:
+• OPENAI_API_KEY: ${envStatus.OPENAI_API_KEY}
+• SUPABASE_URL: ${envStatus.SUPABASE_URL}
+• SUPABASE_ANON_KEY: ${envStatus.SUPABASE_ANON_KEY}
+• WEBHOOK_URL: ${envStatus.WEBHOOK_URL}
+
+${data.message}`;
+                    
+                    showResult(resultText, status, result);
+                } else {
+                    showResult(`❌ Error checking environment: ${data.error}`, 'error', result);
+                }
+
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, 'error', result);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔍 Check Environment';
+            }
+        }
+
+        async function testWebhookConnection() {
+            const btn = document.getElementById('testBtn');
+            const result = document.getElementById('testResult');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Testing...';
+            showResult('🔄 Testing webhook connection...', 'info', result);
+
+            try {
+                const currentUrl = window.location.origin;
+                const apiUrl = `${currentUrl}/api/test-webhook`;
+                
+                const testData = {
+                    conversationId: "debug_test_" + Date.now(),
+                    messages: [
+                        {
+                            role: "user",
+                            content: "This is a debug test message",
+                            timestamp: new Date().toISOString()
+                        }
+                    ],
+                    timestamp: new Date().toISOString()
+                };
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ testData })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showResult(`✅ Webhook test successful!
+
+Status: ${data.status}
+Response: ${data.response || 'No response body'}
+
+Test data sent:
+${JSON.stringify(testData, null, 2)}`, 'success', result);
+                } else {
+                    showResult(`❌ Webhook test failed!
+
+Status: ${response.status}
+Error: ${data.error || data.message}
+
+This means your webhook URL is either:
+1. Not configured in environment variables
+2. Not accessible
+3. Not accepting POST requests
+4. Returning an error status`, 'error', result);
+                }
+
+            } catch (error) {
+                showResult(`❌ Error testing webhook: ${error.message}`, 'error', result);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🌐 Test Webhook';
+            }
+        }
+
+        async function sendTestMessage() {
+            const btn = document.getElementById('messageBtn');
+            const result = document.getElementById('messageResult');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Sending...';
+            showResult('🔄 Sending test message through chat API...', 'info', result);
+
+            try {
+                const currentUrl = window.location.origin;
+                const apiUrl = `${currentUrl}/api/chat`;
+                
+                const testMessage = {
+                    message: "This is a test message to check webhook functionality",
+                    sessionId: "debug_session_" + Date.now()
+                };
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testMessage)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult(`✅ Test message sent successfully!
+
+AI Response: ${data.response}
+Session ID: ${data.sessionId}
+Message Count: ${data.messageCount}
+Webhook Processed: ${data.webhookProcessed ? 'Yes' : 'No'}
+
+Check your webhook endpoint to see if the conversation was received.`, 'success', result);
+                } else {
+                    showResult(`❌ Error sending test message:
+
+Status: ${response.status}
+Error: ${data.error || data.message}`, 'error', result);
+                }
+
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, 'error', result);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '💬 Send Test Message';
+            }
+        }
+
+        function showResult(message, type, element) {
+            element.textContent = message;
+            element.className = `result ${type}`;
+            element.style.display = 'block';
+        }
+    </script>
+</body>
+</html> 

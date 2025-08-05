@@ -21,6 +21,8 @@ if (supabaseUrl && supabaseKey) {
 async function sendToWebhook(conversationData) {
   const webhookUrl = process.env.WEBHOOK_URL;
   
+  console.log('🔍 Webhook URL check:', webhookUrl ? 'Configured' : 'NOT configured');
+  
   if (!webhookUrl) {
     console.log('⚠️ No webhook URL configured - skipping webhook call');
     return null;
@@ -28,6 +30,11 @@ async function sendToWebhook(conversationData) {
 
   try {
     console.log('🌐 Sending conversation to webhook:', webhookUrl);
+    console.log('📤 Conversation data:', {
+      conversationId: conversationData.conversation_id,
+      messageCount: conversationData.messages.length,
+      timestamp: new Date().toISOString()
+    });
     
     const webhookData = {
       conversationId: conversationData.conversation_id,
@@ -36,6 +43,8 @@ async function sendToWebhook(conversationData) {
       sessionId: conversationData.conversation_id
     };
 
+    console.log('📋 Webhook payload size:', JSON.stringify(webhookData).length, 'characters');
+
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
@@ -43,6 +52,8 @@ async function sendToWebhook(conversationData) {
       },
       body: JSON.stringify(webhookData)
     });
+
+    console.log('📡 Webhook response status:', response.status, response.statusText);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -56,6 +67,7 @@ async function sendToWebhook(conversationData) {
     return webhookResponse;
   } catch (error) {
     console.error('❌ Error sending to webhook:', error);
+    console.error('❌ Error details:', error.message);
     return null;
   }
 }
@@ -264,7 +276,9 @@ module.exports = async (req, res) => {
     };
 
     // Send to webhook and get response
+    console.log('🔄 Starting webhook process...');
     const webhookResponse = await sendToWebhook(conversationData);
+    console.log('🔄 Webhook process completed, response:', webhookResponse ? 'Received' : 'None');
 
     // Update Supabase with webhook response
     await updateSupabaseWithWebhookData(sessionId, webhookResponse);
