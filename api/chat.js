@@ -126,7 +126,8 @@ async function callOpenAI(messages) {
       4. Ask if they'd like to learn more about the solutions.
       5. If yes, collect their name → email → phone number (one at a time).
       6. Provide a more technical description of the solution and invite them to book a free consultation.
-      7. Finally, ask if they have any notes or questions before ending the chat.
+      7. If they agree, ask them for date, time and their timezone
+      Finally, ask if they have any notes or questions before ending the chat.
       ⚠️ OTHER RULES:
       - Be friendly but concise.
       - Do not ask multiple questions at once.
