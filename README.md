@@ -11,10 +11,12 @@ Dung Lai Lap Trinh - AI Agent/
     │   ├── chat.js            # Main chat endpoint
     │   ├── conversations.js   # Fetch conversations list
     │   ├── conversation.js    # Individual conversation operations
-    │   └── health.js          # Health check endpoint
+    │   ├── health.js          # Health check endpoint
+    │   └── test-webhook.js    # Webhook testing endpoint
     ├── public/                # Static files
     │   ├── index.html         # Main chat interface
     │   ├── dashboard.html     # Dashboard interface
+    │   ├── test-webhook.html  # Webhook testing interface
     │   ├── script.js          # Chat functionality
     │   ├── dashboard.js       # Dashboard functionality
     │   └── style.css          # Styling
@@ -53,6 +55,7 @@ npm run dev
 - 📊 Conversation dashboard with filtering and pagination
 - 🔍 AI-powered conversation analysis
 - 💾 Persistent storage with Supabase
+- 🌐 Automatic webhook integration for conversation processing
 - 🎨 Modern, responsive UI
 - 📱 Mobile-friendly design
 
@@ -61,6 +64,7 @@ npm run dev
 - `OPENAI_API_KEY` - Your OpenAI API key
 - `SUPABASE_URL` - Your Supabase project URL
 - `SUPABASE_ANON_KEY` - Your Supabase anonymous key
+- `WEBHOOK_URL` - Your webhook URL for processing conversations (optional)
 
 ## License
 

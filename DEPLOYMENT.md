@@ -69,7 +69,10 @@ CREATE TABLE conversations (
   customer_availability TEXT,
   customer_consultation BOOLEAN,
   special_notes TEXT,
-  lead_quality TEXT
+  lead_quality TEXT,
+  webhook_response JSONB,
+  webhook_timestamp TIMESTAMP WITH TIME ZONE,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
 
@@ -110,6 +113,7 @@ Make sure to set these in your Vercel project settings:
 - `OPENAI_API_KEY` - Your OpenAI API key
 - `SUPABASE_URL` - Your Supabase project URL
 - `SUPABASE_ANON_KEY` - Your Supabase anonymous key
+- `WEBHOOK_URL` - Your webhook URL for processing conversations (optional)
 
 ## API Endpoints
 
@@ -137,6 +141,7 @@ Make sure to set these in your Vercel project settings:
    OPENAI_API_KEY=your_openai_key
    SUPABASE_URL=your_supabase_url
    SUPABASE_ANON_KEY=your_supabase_key
+   WEBHOOK_URL=your_webhook_url
    ```
 
 4. **Run locally**:

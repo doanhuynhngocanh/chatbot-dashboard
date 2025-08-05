@@ -17,6 +17,91 @@ if (supabaseUrl && supabaseKey) {
   }
 }
 
+// Function to send conversation to webhook
+async function sendToWebhook(conversationData) {
+  const webhookUrl = process.env.WEBHOOK_URL;
+  
+  if (!webhookUrl) {
+    console.log('⚠️ No webhook URL configured - skipping webhook call');
+    return null;
+  }
+
+  try {
+    console.log('🌐 Sending conversation to webhook:', webhookUrl);
+    
+    const webhookData = {
+      conversationId: conversationData.conversation_id,
+      messages: conversationData.messages,
+      timestamp: new Date().toISOString(),
+      sessionId: conversationData.conversation_id
+    };
+
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(webhookData)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Webhook request failed:', response.status, errorText);
+      return null;
+    }
+
+    const webhookResponse = await response.text();
+    console.log('✅ Webhook response received:', webhookResponse);
+    
+    return webhookResponse;
+  } catch (error) {
+    console.error('❌ Error sending to webhook:', error);
+    return null;
+  }
+}
+
+// Function to update Supabase with webhook response
+async function updateSupabaseWithWebhookData(sessionId, webhookResponse) {
+  if (!supabase || !webhookResponse) {
+    return;
+  }
+
+  try {
+    console.log('💾 Updating Supabase with webhook data...');
+    
+    // Parse webhook response if it's JSON
+    let parsedResponse = webhookResponse;
+    try {
+      parsedResponse = JSON.parse(webhookResponse);
+    } catch (e) {
+      // If not JSON, use as string
+      parsedResponse = { raw_response: webhookResponse };
+    }
+
+    const updateData = {
+      conversation_id: sessionId,
+      webhook_response: parsedResponse,
+      webhook_timestamp: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    const { error } = await supabase
+      .from('conversations')
+      .upsert(updateData, { 
+        onConflict: 'conversation_id',
+        ignoreDuplicates: false 
+      });
+
+    if (error) {
+      console.error('❌ Error updating Supabase with webhook data:', error);
+    } else {
+      console.log('✅ Supabase updated with webhook data');
+    }
+  } catch (error) {
+    console.error('❌ Error updating Supabase:', error);
+  }
+}
+
 // OpenAI API call using fetch (works in Vercel)
 async function callOpenAI(messages) {
   // Add system prompt to the beginning of messages
@@ -170,15 +255,22 @@ module.exports = async (req, res) => {
       timestamp: new Date().toISOString()
     });
 
-    // Save to Supabase
+    // Prepare conversation data for webhook
+    const conversationData = {
+      conversation_id: sessionId,
+      messages: conversationHistory,
+      created_at: new Date().toISOString()
+    };
+
+    // Send to webhook and get response
+    const webhookResponse = await sendToWebhook(conversationData);
+
+    // Update Supabase with webhook response
+    await updateSupabaseWithWebhookData(sessionId, webhookResponse);
+
+    // Save conversation to Supabase
     if (supabase) {
       try {
-        const conversationData = {
-          conversation_id: sessionId,
-          messages: conversationHistory,
-          created_at: new Date().toISOString()
-        };
-
         const { error } = await supabase
           .from('conversations')
           .upsert(conversationData, { 
@@ -200,7 +292,8 @@ module.exports = async (req, res) => {
     res.json({
       response: aiResponse,
       sessionId: sessionId,
-      messageCount: conversationHistory.length
+      messageCount: conversationHistory.length,
+      webhookProcessed: !!webhookResponse
     });
 
   } catch (error) {
